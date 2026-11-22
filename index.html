@@ -18945,9 +18945,19 @@
       }
 
       // Communication sécurisée avec Google Apps Script (sans preflight CORS)
+      async function fetchWithTimeout(url, options, timeoutMs = 12000) {
+        const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+        try {
+          return await fetch(url, ctrl ? Object.assign({}, options, { signal: ctrl.signal }) : options);
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      }
+
       async function apiGet(params) {
         const qs = new URLSearchParams(params).toString();
-        const res = await fetch(`${APPS_SCRIPT_URL}?${qs}`, {
+        const res = await fetchWithTimeout(`${APPS_SCRIPT_URL}?${qs}`, {
           method: 'GET',
           redirect: 'follow'
         });
@@ -18956,7 +18966,7 @@
       }
 
       async function apiPost(bodyObj) {
-        const res = await fetch(APPS_SCRIPT_URL, {
+        const res = await fetchWithTimeout(APPS_SCRIPT_URL, {
           method: 'POST',
           redirect: 'follow',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -19209,7 +19219,7 @@
           const cat = tab.dataset.magicCat;
           const cnt = catCounts[cat] || 0;
           tab.classList.toggle('hidden', cnt === 0);
-          const countSpan = tab.querySelector('span.text-\[9\.5px\]');
+          const countSpan = tab.lastElementChild;
           if (countSpan) countSpan.textContent = `${cnt} effet${cnt > 1 ? 's' : ''}`;
           if (cnt > 0) {
             if (!firstVisibleCat) firstVisibleCat = cat;
@@ -20615,7 +20625,11 @@
         bindUIEvents();
 
         if (state.clientMode) {
-          applyClientPermissions(true);
+          try {
+            applyClientPermissions(true);
+          } catch (permErr) {
+            console.error('Erreur applyClientPermissions :', permErr);
+          }
         }
 
         // Sur petit écran, fermer le tiroir au départ pour admirer le parchemin 3D
@@ -20624,11 +20638,15 @@
         }
 
         const finalizeBoot = () => {
-          syncUIFromState();
-          animate();
+          try {
+            syncUIFromState();
+            animate();
+          } catch (bootErr) {
+            console.error('Erreur démarrage scène :', bootErr);
+          }
 
           const loader = document.getElementById('loading-overlay');
-          setTimeout(() => loader.classList.add('hidden-fade'), 260);
+          if (loader) setTimeout(() => loader.classList.add('hidden-fade'), 260);
 
           if (fatalStatusError) {
             showStatusErrorOverlay(fatalStatusError.title, fatalStatusError.message);
