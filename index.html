@@ -464,6 +464,16 @@
       display: none !important;
     }
 
+    /* Mode Catalogue (Aperçu public des effets, partage & export désactivés) */
+    body.catalogue-mode #btn-share-rp,
+    body.catalogue-mode #btn-capture-png,
+    body.catalogue-mode #btn-admin-lock,
+    body.catalogue-mode #share-link-modal,
+    body.catalogue-mode #admin-gate-overlay {
+      display: none !important;
+      pointer-events: none !important;
+    }
+
     .choice-card.quota-locked {
       opacity: 0.42;
       filter: grayscale(0.55);
@@ -2115,6 +2125,7 @@
         clientMode: false,
         clientToken: '',
         clientData: null,
+        catalogueMode: false,
         soundEnabled: false
       };
 
@@ -4618,7 +4629,7 @@
       function updateFleeHoverAt(u, v) {
         if (state.enchant !== 26) return;
         if (state.opening !== 0 && state.openPhase !== 'open') return;
-        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.catalogueMode && !state.sharedReadOnly) return;
         const cx = u * TEX_W;
         const cy = (1.0 - v) * TEX_H;
         if (fleeTextState.pointerOn) {
@@ -11766,7 +11777,7 @@
       function applyDragonHoverAt(u, v) {
         if (state.enchant !== 13) return;
         if (state.opening !== 0 && state.openPhase !== 'open') return;
-        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.catalogueMode && !state.sharedReadOnly) return;
 
         if (dragonTrans.hasPrev) {
           const dist = Math.hypot(u - dragonTrans.prevU, v - dragonTrans.prevV);
@@ -12125,7 +12136,7 @@
       function applyScratchAt(u, v, isTap = false) {
         if (state.enchant !== 20) return;
         if (state.opening !== 0 && state.openPhase !== 'open') return;
-        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.catalogueMode && !state.sharedReadOnly) return;
 
         let totalScraped = 0;
         let du = 0.01, dv = 0.0;
@@ -12168,7 +12179,7 @@
             const speedBoost = Math.min(1.0, Math.hypot(du, dv) * 24.0 + 0.38);
             soundEngine.playScratchScrape(speedBoost);
           }
-          if ((state.isAdmin || state.clientMode) && !state.readingMode) {
+          if ((state.isAdmin || state.clientMode || state.catalogueMode) && !state.readingMode) {
             updateVfxStatusUI();
           }
         }
@@ -17853,7 +17864,7 @@
       function tryClickNailEdgeAt(u, v) {
         if (state.enchant !== 28) return false;
         if (state.opening !== 0 && state.openPhase !== 'open') return false;
-        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return false;
+        if (!state.isAdmin && !state.clientMode && !state.catalogueMode && !state.sharedReadOnly) return false;
 
         // Zone généreuse couvrant les 4 coins et les 4 bords du parchemin
         const nearEdge = (u <= 0.28 || u >= 0.72 || v <= 0.26 || v >= 0.74);
@@ -18119,7 +18130,7 @@
         } else if (
           state.enchant === 28 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           // Énigme Parchemin Agité : cliquer sur les 4 coins/bords pour les fixer avec de vieux clous (sans indice)
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18130,7 +18141,7 @@
         } else if (
           state.enchant === 23 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           // Énigme Encre Fugace : tapoter plusieurs fois sur le parchemin pour révéler le texte
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18141,7 +18152,7 @@
         } else if (
           state.enchant === 22 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           // Énigme La Plume Sèche : incliner librement le parchemin en 3D pour observer le sillon sous l'angle rasant
           dryQuillState.dragging = true;
@@ -18153,7 +18164,7 @@
         } else if (
           state.enchant === 21 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           // Énigme Pliage Secret : mémoriser le rabat ou le centre cliqué (supporte clic net ET glisser)
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18170,7 +18181,7 @@
         } else if (
           state.enchant === 20 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           // Énigme Voile de Cendre : maintenir et gratter la couche noire pour révéler le message dessous
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18185,7 +18196,7 @@
         } else if (
           state.enchant === 10 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           // Énigme Écriture Spéculaire : attraper le parchemin pour le décaler sur le côté et révéler le miroir caché derrière
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18285,7 +18296,7 @@
           state.enchant === 19 &&
           state.vfxPhase === 'idle' &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18302,7 +18313,7 @@
           !state.inspectMode &&
           state.enchant === 20 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18315,7 +18326,7 @@
           !state.inspectMode &&
           state.enchant === 23 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18328,7 +18339,7 @@
           !state.inspectMode &&
           state.enchant === 22 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             canvasEl.style.cursor = dryQuillState.dragging ? 'grabbing' : 'grab';
@@ -18339,7 +18350,7 @@
           !state.inspectMode &&
           state.enchant === 21 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.clientMode || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18405,7 +18416,7 @@
           clickTrack.down = false;
           const moved = Math.hypot(e.clientX - clickTrack.x, e.clientY - clickTrack.y);
           // Un clic net (sans glisser en inspection 3D) ouvre le parchemin fermé ou la fenêtre de code du parchemin vide !
-          if (moved < 10 && (state.isAdmin || state.clientMode || state.sharedReadOnly)) {
+          if (moved < 10 && (state.isAdmin || state.clientMode || state.catalogueMode || state.sharedReadOnly)) {
             if (state.opening !== 0 && state.openPhase === 'closed') {
               openParchment();
             } else if (state.enchant === 11 && !state.riddleSolved && state.vfxPhase === 'idle' && (state.opening === 0 || state.openPhase === 'open')) {
@@ -18442,7 +18453,7 @@
       });
 
       canvasEl.addEventListener('wheel', (e) => {
-        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.catalogueMode && !state.sharedReadOnly) return;
         e.preventDefault();
         const delta = Math.max(-180, Math.min(180, e.deltaY)) * 0.0042;
         if (state.inspectMode) {
@@ -18656,7 +18667,7 @@
 
       function openRiddleModal() {
         if (state.enchant !== 11 || state.riddleSolved) return;
-        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.catalogueMode && !state.sharedReadOnly) return;
         const modal = document.getElementById('riddle-code-modal');
         const hintEl = document.getElementById('riddle-modal-hint');
         const inputEl = document.getElementById('riddle-modal-input');
@@ -19063,6 +19074,7 @@
 
       // Encodage / Décodage URL sécurisé UTF-8 (rétrocompatibilité #rp=...)
       function encodeStateToHash() {
+        if (state.catalogueMode) return '';
         const json = JSON.stringify(buildLetterPayload());
         const bytes = new TextEncoder().encode(json);
         let bin = '';
@@ -19268,6 +19280,10 @@
       }
 
       function captureHighResPNG() {
+        if (state.catalogueMode) {
+          showToast('Export désactivé en mode Catalogue.');
+          return;
+        }
         try {
           renderer.render(scene, camera);
           const dataUrl = renderer.domElement.toDataURL('image/png');
@@ -19854,7 +19870,11 @@
         // Partager (Sauvegarde via Google Apps Script + décompte sécurisé en Mode Client)
         let shareInFlight = false;
         const btnShareRp = document.getElementById('btn-share-rp');
-        btnShareRp.addEventListener('click', async () => {
+        if (btnShareRp) btnShareRp.addEventListener('click', async () => {
+          if (state.catalogueMode) {
+            showToast('Le partage est désactivé en mode Catalogue.');
+            return;
+          }
           if (shareInFlight) return;
 
           const baseUrl = window.location.href.split('#')[0].split('?')[0];
@@ -19973,7 +19993,8 @@
         }
 
         // Capture PNG
-        document.getElementById('btn-capture-png').addEventListener('click', captureHighResPNG);
+        const btnCapturePng = document.getElementById('btn-capture-png');
+        if (btnCapturePng) btnCapturePng.addEventListener('click', captureHighResPNG);
 
         // Son procédural (HUD éditeur & barre lecture RP)
         document.getElementById('btn-sound-toggle').addEventListener('click', toggleSound);
@@ -20545,6 +20566,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         const letterId = (urlParams.get('lettre') || '').trim();
         const passToken = (urlParams.get('pass') || '').trim();
+        const isCatalogueParam =
+          urlParams.has('catalogue') ||
+          (urlParams.get('mode') || '').trim().toLowerCase() === 'catalogue';
         const loadedFromHash = !letterId && tryLoadStateFromHash();
 
         let loadedFromShare = false;
@@ -20615,8 +20639,42 @@
               message: 'Impossible de vérifier votre pass RP auprès des archives. Réessayez dans un instant.'
             };
           }
+        } else if (isCatalogueParam) {
+          // 4. Mode Catalogue (?catalogue=1) : exploration libre de tous les effets, sans partage ni export
+          state.catalogueMode = true;
+          state.isAdmin = false;
+          state.clientMode = false;
+          document.body.classList.remove('admin-locked');
+          document.body.classList.add('catalogue-mode');
+          const gate = document.getElementById('admin-gate-overlay');
+          if (gate) gate.remove();
+          const shareBtn = document.getElementById('btn-share-rp');
+          if (shareBtn) shareBtn.remove();
+          const pngBtn = document.getElementById('btn-capture-png');
+          if (pngBtn) pngBtn.remove();
+          const lockBtn = document.getElementById('btn-admin-lock');
+          if (lockBtn) lockBtn.remove();
+          const shareModalEl = document.getElementById('share-link-modal');
+          if (shareModalEl) shareModalEl.remove();
+
+          // Afficher le badge "Mode Catalogue" dans le HUD
+          const pill = document.getElementById('client-pass-pill');
+          const pillLabel = document.getElementById('client-pass-label');
+          if (pill && pillLabel) {
+            const dot = pill.querySelector('span.rounded-full');
+            if (dot) {
+              dot.className = 'w-2 h-2 rounded-full bg-[#e7cb92] shadow-[0_0_8px_#e7cb92]';
+            }
+            pillLabel.textContent = 'Catalogue (Aperçu)';
+            pill.classList.remove('hidden');
+            pill.classList.add('flex');
+          }
+
+          // Adapter le libellé du bouton de sortie du mode Lecture RP
+          const exitReadingSpan = document.querySelector('#btn-exit-reading span');
+          if (exitReadingSpan) exitReadingSpan.textContent = 'Catalogue';
         } else {
-          // 4. Mode Admin : vérification côté serveur Apps Script (zéro mot de passe dans le HTML)
+          // 5. Mode Admin : vérification côté serveur Apps Script (zéro mot de passe dans le HTML)
           document.body.classList.add('admin-locked');
           const isAuthed = await checkSavedAdminSession();
           setAdminUnlocked(isAuthed);
@@ -20630,6 +20688,10 @@
           } catch (permErr) {
             console.error('Erreur applyClientPermissions :', permErr);
           }
+        } else if (state.catalogueMode) {
+          // Ouvrir directement sur l'onglet Magie pour explorer le catalogue des effets
+          const magicTabBtn = document.querySelector('.tab-btn[data-tab="enchantement"]');
+          if (magicTabBtn) magicTabBtn.click();
         }
 
         // Sur petit écran, fermer le tiroir au départ pour admirer le parchemin 3D
@@ -20654,6 +20716,8 @@
             setReadingMode(true);
           } else if (state.clientMode) {
             showToast(`Bienvenue ${state.clientData.nom || 'Voyageur'} — vos effets achetés sont prêts.`);
+          } else if (state.catalogueMode) {
+            showToast('Mode Catalogue — explorez librement les parchemins, ouvertures et enchantements.');
           } else if (!state.isAdmin) {
             const passInput = document.getElementById('admin-pass-input');
             if (passInput) setTimeout(() => passInput.focus(), 320);
