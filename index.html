@@ -444,10 +444,62 @@
     #admin-gate-overlay {
       transition: opacity 0.45s ease, visibility 0.45s ease;
     }
-    #admin-gate-overlay.hidden-gate {
+    #admin-gate-overlay.hidden-gate,
+    #status-error-overlay.hidden-gate,
+    #share-link-modal.hidden-gate {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
+    }
+
+    #status-error-overlay,
+    #share-link-modal {
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    /* Mode Client (Pass RP avec quotas achetés) */
+    body.client-mode #btn-admin-lock,
+    body.client-mode #presets-section,
+    body.client-mode #presets-divider {
+      display: none !important;
+    }
+
+    .choice-card.quota-locked {
+      opacity: 0.42;
+      filter: grayscale(0.55);
+      cursor: not-allowed !important;
+    }
+    .choice-card.quota-locked:hover {
+      transform: none !important;
+      border-color: rgba(201, 168, 106, 0.18) !important;
+      background: rgba(18, 16, 13, 0.72) !important;
+    }
+
+    .quota-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.02em;
+    }
+    .quota-badge.quota-ok {
+      background: rgba(201, 168, 106, 0.18);
+      border: 1px solid rgba(231, 203, 146, 0.45);
+      color: #f3dfb6;
+    }
+    .quota-badge.quota-unlimited {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #c2b6a2;
+    }
+    .quota-badge.quota-empty {
+      background: rgba(185, 28, 28, 0.24);
+      border: 1px solid rgba(248, 113, 113, 0.45);
+      color: #fca5a5;
     }
 
     /* Séparateur losange Skyrim */
@@ -585,10 +637,40 @@
         <input id="admin-pass-input" type="password" autocomplete="current-password" class="skyrim-input w-full rounded-xl px-3.5 py-2.5 text-sm" placeholder="Entrez le code secret…" />
         <p id="admin-gate-error" class="hidden text-xs text-[#ff7b7b]">Code secret invalide.</p>
       </div>
-      <button type="submit" class="btn-gold w-full rounded-xl py-2.5 px-4 font-skyrim text-xs tracking-widest uppercase">
+      <button id="admin-gate-submit" type="submit" class="btn-gold w-full rounded-xl py-2.5 px-4 font-skyrim text-xs tracking-widest uppercase">
         Ouvrir le Grimoire
       </button>
     </form>
+  </div>
+
+  <!-- Écran d'erreur RP (Pass invalide / désactivé ou Lettre introuvable) -->
+  <div id="status-error-overlay" class="hidden-gate fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-4">
+    <div class="grimoire-panel w-full max-w-sm rounded-2xl p-6 space-y-4 text-center">
+      <div class="flex flex-col items-center gap-2">
+        <svg class="w-10 h-10 text-[#c9a86a]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+        <h2 id="status-error-title" class="font-skyrim text-base tracking-[0.18em] uppercase text-[#e7cb92]">Sceau Invalide</h2>
+        <p id="status-error-message" class="font-lore italic text-sm text-[#c7b9a2]">Ce lien RP n'est pas valide ou a expiré.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fenêtre de secours si le navigateur bloque la copie automatique du lien -->
+  <div id="share-link-modal" class="hidden-gate fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm px-4">
+    <div class="grimoire-panel relative w-full max-w-md rounded-2xl p-5 space-y-3 text-center">
+      <button id="btn-close-share-modal" type="button" class="absolute top-3 right-3 text-[#a89a84] hover:text-[#f2dfb9] p-1.5 rounded-lg transition-colors" title="Fermer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h3 class="font-skyrim text-sm tracking-[0.16em] uppercase text-[#e7cb92]">Lien de votre Missive RP</h3>
+      <p class="font-lore italic text-xs text-[#bfb39d]">Copiez ce lien et envoyez-le à votre destinataire (lecture seule) :</p>
+      <input id="share-link-input" type="text" readonly class="skyrim-input w-full rounded-xl px-3 py-2 text-xs font-mono" />
+      <button id="btn-copy-share-modal" type="button" class="btn-gold w-full rounded-xl py-2 px-4 font-skyrim text-xs tracking-wider uppercase">
+        Copier le lien
+      </button>
+    </div>
   </div>
 
   <!-- Barre HUD supérieure -->
@@ -605,6 +687,11 @@
       <div class="hud-pill rounded-xl px-3.5 py-2 hidden md:flex items-center gap-2.5">
         <span class="w-2 h-2 rounded-full bg-[#e09132] shadow-[0_0_8px_#e09132]"></span>
         <span class="font-skyrim text-xs lg:text-sm tracking-[0.16em] text-[#e7cb92] uppercase">Scriptorium de Bordeciel</span>
+      </div>
+
+      <div id="client-pass-pill" class="hud-pill rounded-xl px-3 py-2 hidden items-center gap-2 text-xs text-[#f3dfb6]">
+        <span class="w-2 h-2 rounded-full bg-[#7fd88a] shadow-[0_0_8px_#7fd88a]"></span>
+        <span id="client-pass-label" class="font-skyrim text-[11px] tracking-wider truncate max-w-[165px]">Pass RP</span>
       </div>
     </div>
 
@@ -718,7 +805,7 @@
       <!-- ONGLET 1 : ÉCRITURE & MODÈLES RP -->
       <section id="tab-ecriture" class="tab-panel space-y-4">
         <!-- Modèles RP 1-clic -->
-        <div>
+        <div id="presets-section">
           <label class="block font-skyrim text-[11px] tracking-[0.14em] uppercase text-[#c9a86a] mb-2">Modèles RP de Bordeciel</label>
           <div class="grid grid-cols-1 gap-1.5" id="presets-container">
             <button type="button" data-preset="confrerie" class="choice-card rounded-xl px-3 py-2 text-left flex items-center justify-between">
@@ -759,7 +846,7 @@
           </div>
         </div>
 
-        <div class="skyrim-divider text-[10px]">◆</div>
+        <div id="presets-divider" class="skyrim-divider text-[10px]">◆</div>
 
         <!-- Champs texte -->
         <div class="space-y-3">
@@ -1729,11 +1816,12 @@
       'use strict';
 
       /* --------------------------------------------------------------------------
-         0. CONFIGURATION ADMIN (Édition réservée à l'administrateur)
-            Changez le mot de passe ci-dessous selon votre préférence.
+         0. CONFIGURATION SERVEUR GOOGLE APPS SCRIPT (Admin & Pass Clients RP)
+            Le mot de passe Admin n'est jamais stocké dans ce fichier :
+            il est vérifié côté serveur via la propriété ADMIN_SECRET d'Apps Script.
          -------------------------------------------------------------------------- */
-      const ADMIN_PASSCODE = 'Bordeciel2026';
-      const ADMIN_STORAGE_KEY = 'scriptorium_admin_auth_v1';
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0wXqueJa92YSfl72I9TtHGww1GcI9b5ZzG8Z8hqfzUvAPaGEJR9dntI5R76cQQ5MMdg/exec';
+      const ADMIN_STORAGE_KEY = 'scriptorium_admin_secret_v2';
 
       /* --------------------------------------------------------------------------
          1. ÉTAT GLOBAL & MODÈLES RP SKYRIM
@@ -2023,6 +2111,10 @@
         readingMode: false,
         sharedReadOnly: false,
         isAdmin: false,
+        adminSecret: '',
+        clientMode: false,
+        clientToken: '',
+        clientData: null,
         soundEnabled: false
       };
 
@@ -4526,7 +4618,7 @@
       function updateFleeHoverAt(u, v) {
         if (state.enchant !== 26) return;
         if (state.opening !== 0 && state.openPhase !== 'open') return;
-        if (!state.isAdmin && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
         const cx = u * TEX_W;
         const cy = (1.0 - v) * TEX_H;
         if (fleeTextState.pointerOn) {
@@ -11674,7 +11766,7 @@
       function applyDragonHoverAt(u, v) {
         if (state.enchant !== 13) return;
         if (state.opening !== 0 && state.openPhase !== 'open') return;
-        if (!state.isAdmin && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
 
         if (dragonTrans.hasPrev) {
           const dist = Math.hypot(u - dragonTrans.prevU, v - dragonTrans.prevV);
@@ -12033,7 +12125,7 @@
       function applyScratchAt(u, v, isTap = false) {
         if (state.enchant !== 20) return;
         if (state.opening !== 0 && state.openPhase !== 'open') return;
-        if (!state.isAdmin && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
 
         let totalScraped = 0;
         let du = 0.01, dv = 0.0;
@@ -12076,7 +12168,7 @@
             const speedBoost = Math.min(1.0, Math.hypot(du, dv) * 24.0 + 0.38);
             soundEngine.playScratchScrape(speedBoost);
           }
-          if (state.isAdmin && !state.readingMode) {
+          if ((state.isAdmin || state.clientMode) && !state.readingMode) {
             updateVfxStatusUI();
           }
         }
@@ -17761,7 +17853,7 @@
       function tryClickNailEdgeAt(u, v) {
         if (state.enchant !== 28) return false;
         if (state.opening !== 0 && state.openPhase !== 'open') return false;
-        if (!state.isAdmin && !state.sharedReadOnly) return false;
+        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return false;
 
         // Zone généreuse couvrant les 4 coins et les 4 bords du parchemin
         const nearEdge = (u <= 0.28 || u >= 0.72 || v <= 0.26 || v >= 0.74);
@@ -18027,7 +18119,7 @@
         } else if (
           state.enchant === 28 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           // Énigme Parchemin Agité : cliquer sur les 4 coins/bords pour les fixer avec de vieux clous (sans indice)
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18038,7 +18130,7 @@
         } else if (
           state.enchant === 23 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           // Énigme Encre Fugace : tapoter plusieurs fois sur le parchemin pour révéler le texte
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18049,7 +18141,7 @@
         } else if (
           state.enchant === 22 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           // Énigme La Plume Sèche : incliner librement le parchemin en 3D pour observer le sillon sous l'angle rasant
           dryQuillState.dragging = true;
@@ -18061,7 +18153,7 @@
         } else if (
           state.enchant === 21 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           // Énigme Pliage Secret : mémoriser le rabat ou le centre cliqué (supporte clic net ET glisser)
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18078,7 +18170,7 @@
         } else if (
           state.enchant === 20 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           // Énigme Voile de Cendre : maintenir et gratter la couche noire pour révéler le message dessous
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18093,7 +18185,7 @@
         } else if (
           state.enchant === 10 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           // Énigme Écriture Spéculaire : attraper le parchemin pour le décaler sur le côté et révéler le miroir caché derrière
           raycaster.setFromCamera(pointerNDC, camera);
@@ -18193,7 +18285,7 @@
           state.enchant === 19 &&
           state.vfxPhase === 'idle' &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18210,7 +18302,7 @@
           !state.inspectMode &&
           state.enchant === 20 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18223,7 +18315,7 @@
           !state.inspectMode &&
           state.enchant === 23 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18236,7 +18328,7 @@
           !state.inspectMode &&
           state.enchant === 22 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             canvasEl.style.cursor = dryQuillState.dragging ? 'grabbing' : 'grab';
@@ -18247,7 +18339,7 @@
           !state.inspectMode &&
           state.enchant === 21 &&
           (state.opening === 0 || state.openPhase === 'open') &&
-          (state.isAdmin || state.sharedReadOnly)
+          (state.isAdmin || state.clientMode || state.sharedReadOnly)
         ) {
           if (e.target === canvasEl) {
             raycaster.setFromCamera(pointerNDC, camera);
@@ -18313,7 +18405,7 @@
           clickTrack.down = false;
           const moved = Math.hypot(e.clientX - clickTrack.x, e.clientY - clickTrack.y);
           // Un clic net (sans glisser en inspection 3D) ouvre le parchemin fermé ou la fenêtre de code du parchemin vide !
-          if (moved < 10 && (state.isAdmin || state.sharedReadOnly)) {
+          if (moved < 10 && (state.isAdmin || state.clientMode || state.sharedReadOnly)) {
             if (state.opening !== 0 && state.openPhase === 'closed') {
               openParchment();
             } else if (state.enchant === 11 && !state.riddleSolved && state.vfxPhase === 'idle' && (state.opening === 0 || state.openPhase === 'open')) {
@@ -18350,7 +18442,7 @@
       });
 
       canvasEl.addEventListener('wheel', (e) => {
-        if (!state.isAdmin && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
         e.preventDefault();
         const delta = Math.max(-180, Math.min(180, e.deltaY)) * 0.0042;
         if (state.inspectMode) {
@@ -18564,7 +18656,7 @@
 
       function openRiddleModal() {
         if (state.enchant !== 11 || state.riddleSolved) return;
-        if (!state.isAdmin && !state.sharedReadOnly) return;
+        if (!state.isAdmin && !state.clientMode && !state.sharedReadOnly) return;
         const modal = document.getElementById('riddle-code-modal');
         const hintEl = document.getElementById('riddle-modal-hint');
         const inputEl = document.getElementById('riddle-modal-input');
@@ -18852,8 +18944,51 @@
         updateVfxStatusUI();
       }
 
-      // Encodage / Décodage URL sécurisé UTF-8 pour Partage RP
-      function encodeStateToHash() {
+      // Communication sécurisée avec Google Apps Script (sans preflight CORS)
+      async function apiGet(params) {
+        const qs = new URLSearchParams(params).toString();
+        const res = await fetch(`${APPS_SCRIPT_URL}?${qs}`, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        const text = await res.text();
+        return JSON.parse(text);
+      }
+
+      async function apiPost(bodyObj) {
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(bodyObj)
+        });
+        const text = await res.text();
+        return JSON.parse(text);
+      }
+
+      function showStatusErrorOverlay(title, message) {
+        document.body.classList.add('admin-locked');
+        const gate = document.getElementById('admin-gate-overlay');
+        if (gate) gate.classList.add('hidden-gate');
+        const ov = document.getElementById('status-error-overlay');
+        const tEl = document.getElementById('status-error-title');
+        const mEl = document.getElementById('status-error-message');
+        if (tEl) tEl.textContent = title || 'Sceau Invalide';
+        if (mEl) mEl.textContent = message || 'Accès refusé.';
+        if (ov) ov.classList.remove('hidden-gate');
+      }
+
+      function openShareLinkModal(url) {
+        const modal = document.getElementById('share-link-modal');
+        const input = document.getElementById('share-link-input');
+        if (!modal || !input) return;
+        input.value = url;
+        modal.classList.remove('hidden-gate');
+        setTimeout(() => { input.focus(); input.select(); }, 80);
+      }
+
+      // Construction & application du payload de lettre RP (partagé entre ?lettre= et #rp=)
+      function buildLetterPayload() {
         const payload = {
           t: state.title,
           d: state.date,
@@ -18885,7 +19020,40 @@
           payload.as = state.auraStyle;
           payload.ac = state.auraColor;
         }
-        const json = JSON.stringify(payload);
+        return payload;
+      }
+
+      function applyLetterPayload(data) {
+        if (!data || typeof data !== 'object') return false;
+        if (typeof data.t === 'string') state.title = data.t;
+        if (typeof data.d === 'string') state.date = data.d;
+        if (typeof data.b === 'string') state.body = data.b;
+        if (typeof data.s === 'string') state.signature = data.s;
+        if (typeof data.f === 'string') state.font = data.f;
+        if (typeof data.i === 'string' && INK_PALETTES[data.i]) state.ink = data.i;
+        if (typeof data.p === 'number') state.parchment = Math.max(0, Math.min(4, data.p));
+        if (typeof data.w === 'number') state.wear = Math.max(0, Math.min(100, data.w));
+        if (typeof data.sl === 'string') state.seal = data.sl;
+        if (typeof data.e === 'number') state.enchant = Math.max(0, Math.min(30, data.e));
+        if (typeof data.rc === 'string') state.riddleCode = data.rc;
+        if (typeof data.rh === 'string') state.riddleHint = data.rh;
+        if (typeof data.st === 'string') state.secretTitle = data.st;
+        if (typeof data.sb === 'string') state.secretBody = data.sb;
+        if (typeof data.ss === 'string') state.secretSignature = data.ss;
+        if (typeof data.sh === 'string') state.shadowEntity = normalizeShadowEntity(data.sh);
+        if (typeof data.as === 'string') state.auraStyle = normalizeAuraStyle(data.as);
+        if (typeof data.ac === 'string') state.auraColor = normalizeAuraColor(data.ac);
+        if (typeof data.a === 'string') state.art = normalizeBorderDecor(data.a);
+        if (typeof data.dl === 'number') state.delay = data.dl;
+        if (typeof data.sp === 'number') state.speed = data.sp;
+        if (typeof data.op === 'number') state.opening = Math.max(0, Math.min(4, data.op));
+        if (typeof data.osp === 'number') state.openSpeed = Math.max(0.5, Math.min(2.0, data.osp));
+        return true;
+      }
+
+      // Encodage / Décodage URL sécurisé UTF-8 (rétrocompatibilité #rp=...)
+      function encodeStateToHash() {
+        const json = JSON.stringify(buildLetterPayload());
         const bytes = new TextEncoder().encode(json);
         let bin = '';
         bytes.forEach((b) => (bin += String.fromCharCode(b)));
@@ -18902,34 +19070,175 @@
           const bytes = new Uint8Array(bin.length);
           for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
           const data = JSON.parse(new TextDecoder().decode(bytes));
-
-          if (typeof data.t === 'string') state.title = data.t;
-          if (typeof data.d === 'string') state.date = data.d;
-          if (typeof data.b === 'string') state.body = data.b;
-          if (typeof data.s === 'string') state.signature = data.s;
-          if (typeof data.f === 'string') state.font = data.f;
-          if (typeof data.i === 'string' && INK_PALETTES[data.i]) state.ink = data.i;
-          if (typeof data.p === 'number') state.parchment = Math.max(0, Math.min(4, data.p));
-          if (typeof data.w === 'number') state.wear = Math.max(0, Math.min(100, data.w));
-          if (typeof data.sl === 'string') state.seal = data.sl;
-          if (typeof data.e === 'number') state.enchant = Math.max(0, Math.min(30, data.e));
-          if (typeof data.rc === 'string') state.riddleCode = data.rc;
-          if (typeof data.rh === 'string') state.riddleHint = data.rh;
-          if (typeof data.st === 'string') state.secretTitle = data.st;
-          if (typeof data.sb === 'string') state.secretBody = data.sb;
-          if (typeof data.ss === 'string') state.secretSignature = data.ss;
-          if (typeof data.sh === 'string') state.shadowEntity = normalizeShadowEntity(data.sh);
-          if (typeof data.as === 'string') state.auraStyle = normalizeAuraStyle(data.as);
-          if (typeof data.ac === 'string') state.auraColor = normalizeAuraColor(data.ac);
-          if (typeof data.a === 'string') state.art = normalizeBorderDecor(data.a);
-          if (typeof data.dl === 'number') state.delay = data.dl;
-          if (typeof data.sp === 'number') state.speed = data.sp;
-          if (typeof data.op === 'number') state.opening = Math.max(0, Math.min(4, data.op));
-          if (typeof data.osp === 'number') state.openSpeed = Math.max(0.5, Math.min(2.0, data.osp));
-          return true;
+          return applyLetterPayload(data);
         } catch (err) {
           console.warn('Lien RP invalide ignoré :', err);
           return false;
+        }
+      }
+
+      // Vérifications de droits & quotas en Mode Client (?pass=...)
+      function isParchmentAllowed(id) {
+        if (!state.clientMode || !state.clientData) return true;
+        const list = state.clientData.parchemins || [];
+        return list.includes('*') || list.includes(String(id));
+      }
+
+      function isSealAllowed(sealKey) {
+        if (!state.clientMode || !state.clientData) return true;
+        const list = state.clientData.sceaux || [];
+        return list.includes('*') || list.includes(String(sealKey));
+      }
+
+      function getOpeningStock(id) {
+        if (!state.clientMode || !state.clientData) return Infinity;
+        const map = state.clientData.ouvertures || {};
+        return Object.prototype.hasOwnProperty.call(map, String(id)) ? Number(map[String(id)] || 0) : -1;
+      }
+
+      function getEnchantStock(id) {
+        if (!state.clientMode || !state.clientData) return Infinity;
+        const map = state.clientData.magies || {};
+        return Object.prototype.hasOwnProperty.call(map, String(id)) ? Number(map[String(id)] || 0) : -1;
+      }
+
+      function updateCardQuotaBadge(btn, idStr, qty) {
+        let badge = btn.querySelector('.quota-badge');
+        if (!badge) {
+          badge = document.createElement('div');
+          btn.appendChild(badge);
+        }
+        badge.className = 'quota-badge';
+        if (idStr === '0' && qty >= 999) {
+          badge.classList.add('quota-unlimited');
+          badge.textContent = '∞ Illimité';
+          btn.classList.remove('quota-locked');
+        } else if (qty > 0) {
+          badge.classList.add('quota-ok');
+          badge.textContent = `✦ ${qty} utilisation${qty > 1 ? 's' : ''} restante${qty > 1 ? 's' : ''}`;
+          btn.classList.remove('quota-locked');
+        } else {
+          badge.classList.add('quota-empty');
+          badge.textContent = 'Épuisé (0)';
+          btn.classList.add('quota-locked');
+        }
+      }
+
+      function applyClientPermissions(isInitial = false) {
+        if (!state.clientMode || !state.clientData) return;
+
+        // 1. Badge RP dans le HUD
+        const pill = document.getElementById('client-pass-pill');
+        const label = document.getElementById('client-pass-label');
+        if (pill && label) {
+          label.textContent = `Pass : ${state.clientData.nom || 'Client RP'}`;
+          pill.classList.remove('hidden');
+          pill.classList.add('flex');
+        }
+
+        // 2. Parchemins autorisés
+        let firstParch = null;
+        document.querySelectorAll('#parchment-grid [data-parchment]').forEach((btn) => {
+          const id = Number(btn.dataset.parchment);
+          const ok = isParchmentAllowed(id);
+          btn.classList.toggle('hidden', !ok);
+          if (ok && firstParch === null) firstParch = id;
+        });
+        if (!isParchmentAllowed(state.parchment) && firstParch !== null) {
+          state.parchment = firstParch;
+        }
+
+        // 3. Sceaux autorisés
+        let firstSeal = null;
+        document.querySelectorAll('#seal-grid [data-seal]').forEach((btn) => {
+          const key = btn.dataset.seal;
+          const ok = isSealAllowed(key);
+          btn.classList.toggle('hidden', !ok);
+          if (ok && firstSeal === null) firstSeal = key;
+        });
+        if (!isSealAllowed(state.seal) && firstSeal !== null) {
+          state.seal = isSealAllowed('none') ? 'none' : firstSeal;
+        }
+
+        // 4. Ouvertures 3D & badges de stock
+        let firstAvailOpen = null;
+        let firstPurchasedOpen = null;
+        document.querySelectorAll('#opening-grid [data-opening]').forEach((btn) => {
+          const idStr = String(btn.dataset.opening);
+          const qty = getOpeningStock(idStr);
+          if (qty < 0) {
+            btn.classList.add('hidden');
+            btn.classList.remove('quota-locked');
+          } else {
+            btn.classList.remove('hidden');
+            updateCardQuotaBadge(btn, idStr, qty);
+            if (qty > 0) {
+              if (firstAvailOpen === null) firstAvailOpen = Number(idStr);
+              if (Number(idStr) !== 0 && firstPurchasedOpen === null) firstPurchasedOpen = Number(idStr);
+            }
+          }
+        });
+        if (getOpeningStock(state.opening) <= 0) {
+          if (firstAvailOpen !== null) state.opening = firstAvailOpen;
+        } else if (isInitial && state.opening === 0 && getOpeningStock(0) <= 0 && firstPurchasedOpen !== null) {
+          state.opening = firstPurchasedOpen;
+        }
+
+        // 5. Enchantements & badges de stock + masquage des écoles vides
+        let firstAvailMag = null;
+        const catCounts = { destruction: 0, illusion: 0, enigme: 0 };
+        document.querySelectorAll('#enchant-grid [data-enchant]').forEach((btn) => {
+          const idStr = String(btn.dataset.enchant);
+          const idNum = Number(idStr);
+          const qty = getEnchantStock(idStr);
+          if (qty < 0) {
+            btn.classList.add('hidden');
+            btn.classList.remove('quota-locked');
+          } else {
+            btn.classList.remove('hidden');
+            updateCardQuotaBadge(btn, idStr, qty);
+            if (qty > 0 && firstAvailMag === null) firstAvailMag = idNum;
+            const cat = ENCHANT_CATEGORY_MAP[idNum];
+            if (cat) catCounts[cat]++;
+          }
+        });
+
+        let firstVisibleCat = null;
+        let activeCatStillVisible = false;
+        document.querySelectorAll('#magic-subtabs [data-magic-cat]').forEach((tab) => {
+          const cat = tab.dataset.magicCat;
+          const cnt = catCounts[cat] || 0;
+          tab.classList.toggle('hidden', cnt === 0);
+          const countSpan = tab.querySelector('span.text-\[9\.5px\]');
+          if (countSpan) countSpan.textContent = `${cnt} effet${cnt > 1 ? 's' : ''}`;
+          if (cnt > 0) {
+            if (!firstVisibleCat) firstVisibleCat = cat;
+            if (tab.classList.contains('active')) activeCatStillVisible = true;
+          }
+        });
+
+        const subtabsWrap = document.getElementById('magic-subtabs');
+        const subtabsContainer = subtabsWrap ? subtabsWrap.parentElement : null;
+        if (!firstVisibleCat) {
+          if (subtabsContainer) subtabsContainer.classList.add('hidden');
+          document.querySelectorAll('.magic-cat-panel').forEach((p) => p.classList.add('hidden'));
+        } else {
+          if (subtabsContainer) subtabsContainer.classList.remove('hidden');
+          if (!activeCatStillVisible) {
+            setActiveMagicCategory(firstVisibleCat);
+          }
+        }
+
+        if (getEnchantStock(state.enchant) <= 0 && firstAvailMag !== null) {
+          state.enchant = firstAvailMag;
+          resetEnchantment();
+        }
+        if (ENCHANT_CATEGORY_MAP[state.enchant] && catCounts[ENCHANT_CATEGORY_MAP[state.enchant]] > 0) {
+          setActiveMagicCategory(ENCHANT_CATEGORY_MAP[state.enchant]);
+        }
+
+        if (!isInitial) {
+          syncUIFromState();
         }
       }
 
@@ -19067,6 +19376,7 @@
       }
 
       function applyPreset(key) {
+        if (state.clientMode) return;
         const p = RP_PRESETS[key];
         if (!p) return;
         Object.assign(state, p);
@@ -19104,23 +19414,28 @@
         }
       }
 
-      function checkAdminAuth() {
+      async function verifyAdminPasswordServer(password) {
+        if (!password) return { ok: false, error: 'Mot de passe requis.' };
         try {
-          const params = new URLSearchParams(window.location.search);
-          if (params.get('admin') === ADMIN_PASSCODE) {
-            try { localStorage.setItem(ADMIN_STORAGE_KEY, ADMIN_PASSCODE); } catch (_) {}
-            try {
-              const cleanUrl = window.location.href.split('?')[0].split('#')[0] + window.location.hash;
-              window.history.replaceState(null, '', cleanUrl);
-            } catch (_) {}
-            return true;
-          }
-        } catch (_) {}
-        try {
-          return localStorage.getItem(ADMIN_STORAGE_KEY) === ADMIN_PASSCODE;
-        } catch (_) {
-          return false;
+          return await apiPost({ action: 'adminLogin', password: String(password).trim() });
+        } catch (err) {
+          console.error('Erreur vérification Admin :', err);
+          return { ok: false, error: 'Impossible de joindre le serveur Google Apps Script.' };
         }
+      }
+
+      async function checkSavedAdminSession() {
+        let saved = '';
+        try { saved = localStorage.getItem(ADMIN_STORAGE_KEY) || ''; } catch (_) {}
+        if (!saved) return false;
+        const res = await verifyAdminPasswordServer(saved);
+        if (res && res.ok) {
+          state.adminSecret = saved;
+          return true;
+        }
+        try { localStorage.removeItem(ADMIN_STORAGE_KEY); } catch (_) {}
+        state.adminSecret = '';
+        return false;
       }
 
       function setAdminUnlocked(unlocked) {
@@ -19205,7 +19520,12 @@
         // Types de parchemin
         document.querySelectorAll('#parchment-grid [data-parchment]').forEach((btn) => {
           btn.addEventListener('click', () => {
-            state.parchment = Number(btn.dataset.parchment);
+            const targetId = Number(btn.dataset.parchment);
+            if (state.clientMode && !isParchmentAllowed(targetId)) {
+              showToast('Ce parchemin ne fait pas partie de votre pass RP.');
+              return;
+            }
+            state.parchment = targetId;
             parchmentUniforms.uParchmentType.value = state.parchment;
             document.querySelectorAll('#parchment-grid [data-parchment]').forEach((b) => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -19227,7 +19547,12 @@
         // Sceaux de cire
         document.querySelectorAll('#seal-grid [data-seal]').forEach((btn) => {
           btn.addEventListener('click', () => {
-            state.seal = btn.dataset.seal;
+            const targetSeal = btn.dataset.seal;
+            if (state.clientMode && !isSealAllowed(targetSeal)) {
+              showToast('Ce sceau ne fait pas partie de votre pass RP.');
+              return;
+            }
+            state.seal = targetSeal;
             document.querySelectorAll('#seal-grid [data-seal]').forEach((b) => b.classList.remove('selected'));
             btn.classList.add('selected');
             renderSealTexture();
@@ -19239,7 +19564,12 @@
         // Ouverture 3D au clic
         document.querySelectorAll('#opening-grid [data-opening]').forEach((btn) => {
           btn.addEventListener('click', () => {
-            state.opening = Number(btn.dataset.opening);
+            const targetOp = Number(btn.dataset.opening);
+            if (state.clientMode && getOpeningStock(targetOp) <= 0) {
+              showToast('Vous n\'avez plus aucune charge pour cette ouverture.');
+              return;
+            }
+            state.opening = targetOp;
             document.querySelectorAll('#opening-grid [data-opening]').forEach((b) => b.classList.remove('selected'));
             btn.classList.add('selected');
             parchmentUniforms.uOpenType.value = state.opening;
@@ -19291,7 +19621,12 @@
         // Enchantements
         document.querySelectorAll('#enchant-grid [data-enchant]').forEach((btn) => {
           btn.addEventListener('click', () => {
-            state.enchant = Number(btn.dataset.enchant);
+            const targetEnc = Number(btn.dataset.enchant);
+            if (state.clientMode && getEnchantStock(targetEnc) <= 0) {
+              showToast('Vous n\'avez plus aucune charge pour cet enchantement.');
+              return;
+            }
+            state.enchant = targetEnc;
             parchmentUniforms.uEnchantType.value = state.enchant;
             document.querySelectorAll('#enchant-grid [data-enchant]').forEach((b) => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -19308,9 +19643,12 @@
                 dBtn.classList.toggle('selected', Number(dBtn.dataset.delay) === state.delay);
               });
             }
-            // Pour Fil Rouge du Sceau, garantir un sceau de cire rouge visible en bas à droite
+            // Pour Fil Rouge du Sceau, garantir un sceau de cire visible en bas à droite (si autorisé)
             if (state.enchant === 19 && state.seal === 'none') {
-              state.seal = 'imperial';
+              const preferredSeal = isSealAllowed('imperial')
+                ? 'imperial'
+                : (['brotherhood', 'college', 'thieves', 'stormcloak'].find((s) => isSealAllowed(s)) || 'none');
+              state.seal = preferredSeal;
               document.querySelectorAll('#seal-grid [data-seal]').forEach((sBtn) => {
                 sBtn.classList.toggle('selected', sBtn.dataset.seal === state.seal);
               });
@@ -19503,24 +19841,126 @@
           }
         });
 
-        // Partager (Lien RP en lecture seule stricte)
-        document.getElementById('btn-share-rp').addEventListener('click', () => {
-          const hash = encodeStateToHash();
+        // Partager (Sauvegarde via Google Apps Script + décompte sécurisé en Mode Client)
+        let shareInFlight = false;
+        const btnShareRp = document.getElementById('btn-share-rp');
+        btnShareRp.addEventListener('click', async () => {
+          if (shareInFlight) return;
+
           const baseUrl = window.location.href.split('#')[0].split('?')[0];
-          const fullUrl = baseUrl + hash;
-          const copied = copyTextReliable(fullUrl);
-          if (copied) {
-            showToast('Lien RP (lecture seule) copié ! Le lecteur ne pourra pas modifier le parchemin.');
-          } else if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(fullUrl).then(() => {
-              showToast('Lien RP (lecture seule) copié ! Le lecteur ne pourra pas modifier le parchemin.');
-            }).catch(() => {
-              showToast('Impossible de copier automatiquement le lien RP.');
-            });
-          } else {
-            showToast('Impossible de copier automatiquement le lien RP.');
+          const payload = buildLetterPayload();
+
+          // Pré-vérification locale en Mode Client avant l'appel serveur
+          if (state.clientMode) {
+            if (!isParchmentAllowed(state.parchment)) {
+              showToast('Parchemin non autorisé par votre pass RP.');
+              return;
+            }
+            if (!isSealAllowed(state.seal)) {
+              showToast('Sceau non autorisé par votre pass RP.');
+              return;
+            }
+            if (getOpeningStock(state.opening) <= 0) {
+              showToast('Plus aucune charge disponible pour cette ouverture.');
+              return;
+            }
+            if (getEnchantStock(state.enchant) <= 0) {
+              showToast('Plus aucune charge disponible pour cet enchantement.');
+              return;
+            }
+          }
+
+          shareInFlight = true;
+          const labelSpan = btnShareRp.querySelector('span');
+          const origLabel = labelSpan ? labelSpan.textContent : 'Partager';
+          btnShareRp.disabled = true;
+          if (labelSpan) labelSpan.textContent = 'Scellement…';
+
+          const copyFinalUrl = async (url, successMsg) => {
+            let copied = false;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              try {
+                await navigator.clipboard.writeText(url);
+                copied = true;
+              } catch (_) {}
+            }
+            if (!copied) {
+              copied = copyTextReliable(url);
+            }
+            if (copied) {
+              showToast(successMsg);
+            } else {
+              openShareLinkModal(url);
+              showToast('Lien prêt dans la fenêtre : cliquez sur Copier.');
+            }
+          };
+
+          try {
+            const reqBody = state.clientMode
+              ? { action: 'createLetter', token: state.clientToken, payload }
+              : { action: 'createLetter', adminPassword: state.adminSecret, payload };
+
+            const res = await apiPost(reqBody);
+
+            if (res && res.ok && res.id) {
+              const shortUrl = `${baseUrl}?lettre=${encodeURIComponent(res.id)}`;
+              let msg = 'Lien RP court (lecture seule) copié !';
+              if (state.clientMode && res.stock) {
+                state.clientData.ouvertures = res.stock.ouvertures;
+                state.clientData.magies = res.stock.magies;
+                const remMag = getEnchantStock(state.enchant);
+                const remOp = getOpeningStock(state.opening);
+                const parts = [];
+                if (state.opening !== 0 && remOp >= 0) parts.push(`${OPENING_NAMES[state.opening]} : ${remOp} rest.`);
+                if (state.enchant !== 0 && remMag >= 0) parts.push(`${ENCHANT_NAMES[state.enchant]} : ${remMag} rest.`);
+                if (parts.length > 0) msg = `Lien RP copié ! (${parts.join(' • ')})`;
+                applyClientPermissions(false);
+              }
+              await copyFinalUrl(shortUrl, msg);
+            } else {
+              const errMsg = (res && res.error) ? res.error : 'Impossible d\'enregistrer la missive.';
+              showToast(errMsg);
+            }
+          } catch (err) {
+            console.error('Erreur création lettre :', err);
+            if (state.isAdmin && !state.clientMode) {
+              // Secours uniquement pour l'Admin si le réseau est coupé
+              const fallbackUrl = baseUrl + encodeStateToHash();
+              await copyFinalUrl(fallbackUrl, 'Serveur indisponible : lien classique (#rp=...) copié.');
+            } else {
+              showToast('Impossible de joindre le serveur. Réessayez dans un instant.');
+            }
+          } finally {
+            shareInFlight = false;
+            btnShareRp.disabled = false;
+            if (labelSpan) labelSpan.textContent = origLabel;
           }
         });
+
+        // Fenêtre de secours de copie du lien
+        const shareModal = document.getElementById('share-link-modal');
+        const btnCloseShareModal = document.getElementById('btn-close-share-modal');
+        const btnCopyShareModal = document.getElementById('btn-copy-share-modal');
+        const shareLinkInput = document.getElementById('share-link-input');
+        if (btnCloseShareModal && shareModal) {
+          btnCloseShareModal.addEventListener('click', () => shareModal.classList.add('hidden-gate'));
+          shareModal.addEventListener('click', (e) => {
+            if (e.target === shareModal) shareModal.classList.add('hidden-gate');
+          });
+        }
+        if (btnCopyShareModal && shareLinkInput) {
+          btnCopyShareModal.addEventListener('click', async () => {
+            let ok = false;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              try { await navigator.clipboard.writeText(shareLinkInput.value); ok = true; } catch (_) {}
+            }
+            if (!ok) ok = copyTextReliable(shareLinkInput.value);
+            if (ok) {
+              showToast('Lien RP copié dans le presse-papiers !');
+              if (shareModal) shareModal.classList.add('hidden-gate');
+            }
+          });
+        }
 
         // Capture PNG
         document.getElementById('btn-capture-png').addEventListener('click', captureHighResPNG);
@@ -19532,20 +19972,34 @@
           btnSoundReading.addEventListener('click', toggleSound);
         }
 
-        // Portail Admin & Verrouillage session
+        // Portail Admin vérifié côté serveur Google Apps Script
         const adminForm = document.getElementById('admin-gate-form');
         const adminInput = document.getElementById('admin-pass-input');
         const adminErr = document.getElementById('admin-gate-error');
+        const adminSubmit = document.getElementById('admin-gate-submit');
         if (adminForm) {
-          adminForm.addEventListener('submit', (e) => {
+          adminForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if ((adminInput.value || '').trim() === ADMIN_PASSCODE) {
-              adminErr.classList.add('hidden');
+            const pwd = (adminInput.value || '').trim();
+            if (!pwd) return;
+            adminErr.classList.add('hidden');
+            if (adminSubmit) {
+              adminSubmit.disabled = true;
+              adminSubmit.textContent = 'Vérification…';
+            }
+            const res = await verifyAdminPasswordServer(pwd);
+            if (adminSubmit) {
+              adminSubmit.disabled = false;
+              adminSubmit.textContent = 'Ouvrir le Grimoire';
+            }
+            if (res && res.ok) {
+              state.adminSecret = pwd;
               adminInput.value = '';
-              try { localStorage.setItem(ADMIN_STORAGE_KEY, ADMIN_PASSCODE); } catch (_) {}
+              try { localStorage.setItem(ADMIN_STORAGE_KEY, pwd); } catch (_) {}
               setAdminUnlocked(true);
               showToast('Bienvenue dans le Scriptorium, Archiviste.');
             } else {
+              adminErr.textContent = (res && res.error) ? res.error : 'Code secret invalide.';
               adminErr.classList.remove('hidden');
               adminInput.select();
             }
@@ -19556,6 +20010,7 @@
         if (btnAdminLock) {
           btnAdminLock.addEventListener('click', () => {
             try { localStorage.removeItem(ADMIN_STORAGE_KEY); } catch (_) {}
+            state.adminSecret = '';
             setAdminUnlocked(false);
             showToast('Session Admin verrouillée.');
           });
@@ -20076,11 +20531,43 @@
       /* --------------------------------------------------------------------------
          13. DÉMARRAGE PROPRE APRÈS CHARGEMENT DES POLICES ET DU DOM
          -------------------------------------------------------------------------- */
-      window.onload = function () {
-        const loadedFromShare = tryLoadStateFromHash();
+      window.onload = async function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const letterId = (urlParams.get('lettre') || '').trim();
+        const passToken = (urlParams.get('pass') || '').trim();
+        const loadedFromHash = !letterId && tryLoadStateFromHash();
 
-        if (loadedFromShare) {
-          // Mode lecture seule stricte : aucune interface d'édition visible ni accessible
+        let loadedFromShare = false;
+        let fatalStatusError = null;
+
+        if (letterId) {
+          // 1. Mode Lecteur via lien court (?lettre=...) : lecture seule stricte immédiate
+          state.sharedReadOnly = true;
+          state.readingMode = true;
+          document.body.classList.add('shared-readonly', 'reading-mode');
+          const exitBtn = document.getElementById('btn-exit-reading');
+          if (exitBtn) exitBtn.remove();
+          try {
+            const res = await apiGet({ action: 'getLetter', id: letterId });
+            if (res && res.ok && res.payload) {
+              applyLetterPayload(res.payload);
+              loadedFromShare = true;
+            } else {
+              fatalStatusError = {
+                title: 'Missive Introuvable',
+                message: (res && res.error) ? res.error : 'Cette lettre n\'existe pas ou a été réduite en cendres.'
+              };
+            }
+          } catch (err) {
+            console.error('Erreur chargement lettre :', err);
+            fatalStatusError = {
+              title: 'Scriptorium Inaccessible',
+              message: 'Impossible de charger cette missive depuis les archives. Réessayez dans un instant.'
+            };
+          }
+        } else if (loadedFromHash) {
+          // 2. Mode Lecteur rétrocompatible (#rp=...) : lecture seule stricte
+          loadedFromShare = true;
           state.sharedReadOnly = true;
           state.readingMode = true;
           document.body.classList.add('shared-readonly', 'reading-mode');
@@ -20091,13 +20578,45 @@
               window.location.reload();
             }
           });
+        } else if (passToken) {
+          // 3. Mode Client RP (?pass=...) : accès filtré aux effets & quotas achetés
+          document.body.classList.add('admin-locked');
+          try {
+            const res = await apiGet({ action: 'getPass', token: passToken });
+            if (res && res.ok && res.client) {
+              state.clientMode = true;
+              state.clientToken = passToken;
+              state.clientData = res.client;
+              state.isAdmin = false;
+              document.body.classList.remove('admin-locked');
+              document.body.classList.add('client-mode');
+              const gate = document.getElementById('admin-gate-overlay');
+              if (gate) gate.classList.add('hidden-gate');
+            } else {
+              fatalStatusError = {
+                title: 'Pass RP Refusé',
+                message: (res && res.error) ? res.error : 'Ce lien de pass RP est invalide ou désactivé.'
+              };
+            }
+          } catch (err) {
+            console.error('Erreur chargement pass :', err);
+            fatalStatusError = {
+              title: 'Scriptorium Inaccessible',
+              message: 'Impossible de vérifier votre pass RP auprès des archives. Réessayez dans un instant.'
+            };
+          }
         } else {
-          // Accès à l'atelier d'édition réservé à l'admin
-          const isAuthed = checkAdminAuth();
+          // 4. Mode Admin : vérification côté serveur Apps Script (zéro mot de passe dans le HTML)
+          document.body.classList.add('admin-locked');
+          const isAuthed = await checkSavedAdminSession();
           setAdminUnlocked(isAuthed);
         }
 
         bindUIEvents();
+
+        if (state.clientMode) {
+          applyClientPermissions(true);
+        }
 
         // Sur petit écran, fermer le tiroir au départ pour admirer le parchemin 3D
         if (window.innerWidth < 768) {
@@ -20111,8 +20630,12 @@
           const loader = document.getElementById('loading-overlay');
           setTimeout(() => loader.classList.add('hidden-fade'), 260);
 
-          if (loadedFromShare) {
+          if (fatalStatusError) {
+            showStatusErrorOverlay(fatalStatusError.title, fatalStatusError.message);
+          } else if (loadedFromShare) {
             setReadingMode(true);
+          } else if (state.clientMode) {
+            showToast(`Bienvenue ${state.clientData.nom || 'Voyageur'} — vos effets achetés sont prêts.`);
           } else if (!state.isAdmin) {
             const passInput = document.getElementById('admin-pass-input');
             if (passInput) setTimeout(() => passInput.focus(), 320);
